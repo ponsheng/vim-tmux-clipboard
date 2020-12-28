@@ -16,7 +16,7 @@ func! s:Save2Tmux()
     let text = v:event.regcontents
     let type = v:event["regtype"]
     if type ==# 'V'
-        return system('tmux loadb -', join(text,'\n') . "\n")
+        return system('tmux loadb -', join(text,"\n") . "\n")
     elseif type ==# 'v'
     "    let text =
         return system('tmux loadb -',join(text))
@@ -61,7 +61,7 @@ func! s:update_from_tmux()
     let buffer_name = s:TmuxBufferName()
     if s:lastbname != buffer_name
         let text = s:TmuxBuffer()
-        if text =~ '\n'
+        if text =~ "\n"
             call setreg('"', text, 'V')
         else
             call setreg('"', text, 'v')
