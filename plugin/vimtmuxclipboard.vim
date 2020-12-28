@@ -16,11 +16,9 @@ func! s:Save2Tmux()
     let text = v:event.regcontents
     let type = v:event["regtype"]
     if type ==# 'V'
-        call system('echo "Yanked with V, append two newline" >> ~/log')
         return system('tmux loadb -', join(text,'\n') . "\n")
     elseif type ==# 'v'
     "    let text =
-        call system('echo "Yanked with v" >> ~/log')
         return system('tmux loadb -',join(text))
     else
         " Other mode is not supported
@@ -60,7 +58,6 @@ func! s:Enable()
 endfunc
 
 func! s:update_from_tmux()
-    call system('echo "Update from tmux " >> ~/log')
     let buffer_name = s:TmuxBufferName()
     if s:lastbname != buffer_name
         let text = s:TmuxBuffer()
