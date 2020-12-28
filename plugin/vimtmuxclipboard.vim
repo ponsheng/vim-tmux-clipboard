@@ -12,9 +12,25 @@ func! s:TmuxBuffer()
     return system('tmux show-buffer')
 endfunc
 
+func! s:Save2Tmux()
+    let text = v:event.regcontents
+    let type = v:event["regtype"]
+    if type ==# 'V'
+        call system('echo "Yanked with V, append two newline" >> ~/log')
+        return system('tmux loadb -', join(text,'\n') . "\n")
+    elseif type ==# 'v'
+    "    let text =
+        call system('echo "Yanked with v" >> ~/log')
+        return system('tmux loadb -',join(text))
+    else
+        " Other mode is not supported
+        " for blockwise-visual text not supported
+    endif
+endfunc
+
 func! s:Enable()
 
-    if $TMUX=='' 
+    if $TMUX==''
         " not in tmux session
         return
     endif
@@ -26,9 +42,9 @@ func! s:Enable()
         " @"
         augroup vimtmuxclipboard
             autocmd!
-            autocmd FocusLost * call s:update_from_tmux()
+            "autocmd FocusLost * call s:update_from_tmux()
             autocmd	FocusGained   * call s:update_from_tmux()
-            autocmd TextYankPost * silent! call system('tmux loadb -',join(v:event["regcontents"],"\n"))
+            autocmd TextYankPost * call s:Save2Tmux()
         augroup END
         let @" = s:TmuxBuffer()
     else
@@ -36,18 +52,24 @@ func! s:Enable()
         " This is a workaround for vim
         augroup vimtmuxclipboard
             autocmd!
-            autocmd FocusLost     *  silent! call system('tmux loadb -',@")
+            "autocmd FocusLost     *  silent! call system('tmux loadb -',@")
             autocmd	FocusGained   *  let @" = s:TmuxBuffer()
         augroup END
         let @" = s:TmuxBuffer()
     endif
-
 endfunc
 
 func! s:update_from_tmux()
+    call system('echo "Update from tmux " >> ~/log')
     let buffer_name = s:TmuxBufferName()
     if s:lastbname != buffer_name
-        let @" = s:TmuxBuffer()
+        let text = s:TmuxBuffer()
+        if text =~ '\n'
+            call setreg('"', text, 'V')
+        else
+            call setreg('"', text, 'v')
+        endif
+        "let @" = s:TmuxBuffer()
     endif
     let s:lastbname=s:TmuxBufferName()
 endfunc
